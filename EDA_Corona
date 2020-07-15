@@ -1,0 +1,122 @@
+covid <- read.csv(file.choose(), header =T)
+
+covid <- read_excel("Advance_corona_xl.xlsx", 
+           col_types = c("numeric", "factor", "factor", 
+                         "text", "text", "numeric", "text", 
+                         "date", "date", "numeric", "numeric", 
+                         "numeric", "numeric", "text", "text"))
+
+covid <- read.csv("Advance_corona.csv", 
+                    col_types = c("numeric", "factor", "factor", 
+                                  "text", "text", "numeric", "text", 
+                                  "text", "text", "numeric", "numeric", 
+                                  "numeric", "numeric", "text", "text"))
+
+str(covid)
+str(covid1)
+#
+dim(covid)
+summary(covid)
+
+
+
+
+# case in country = Country-wise occurrence of the case. Like-7 means 7th patient in a particular country.
+
+head(table(covid$location))
+count(unique(covid$location))  ## 156 locations data
+str(table(covid$location))
+max(table(covid$location))
+table(covid$location)
+barplot(table(covid$location), main = "Location wise Analysis", 
+        xlab = "Location", ylab = "Count" , col = c("red","violet","orange","skyblue","darkgreen"))
+# Max cases in South Korea location wise
+
+# Country Wise
+barplot(table(covid$country), main = "Country wise Analysis", 
+        xlab = "Country", ylab = "Count" , col = c("red","violet","orange","skyblue","darkgreen"))
+
+# Gender
+summary(covid$gender)
+p = ggplot(covid, aes(x = gender)) +geom_bar(aes(y = (..count..)/sum(..count..))) 
+addmargins(prop.table(table(covid$gender))*100)
+
+
+myplot <- ggplot(covid, aes(gender)) + 
+  geom_bar(aes(y = (..count..)/sum(..count..))) + 
+  scale_y_continuous(labels=scales::percent) +
+  ylab("relative frequencies")
+myplot
+
+# 64.8% are male and 35.2 are female
+
+# Age
+# placing the data in age groups
+agebreaks <- c(0,1,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,500)
+agelabels <- c("0-1","1-4","5-9","10-14","15-19","20-24","25-29","30-34",
+               "35-39","40-44","45-49","50-54","55-59","60-64","65-69",
+               "70-74","75-79","80-84","85+")
+library(data.table)
+setDT(covid)[ , agegroups := cut(age, 
+                                breaks = agebreaks, 
+                                right = FALSE, 
+                                labels = agelabels)]
+str(covid)
+summary(covid$agegroups)
+addmargins(prop.table(table(covid$agegroups))*100) # %wise dividingg the data among the age groups
+#most of the people belong to 50 to 60 years of age group
+myplot <- ggplot(covid, aes(agegroups)) + 
+  geom_bar(aes(y = (..count..)/sum(..count..))) + 
+  scale_y_continuous(labels=scales::percent) +
+  ylab("relative frequencies")
+myplot  # age group bar plot %wise 
+
+
+# symtom onset , hospital visit data and exposure end are dates
+# Converting the factor to dates 
+covid$symptom_onset<- as.Date(covid$symptom_onset, "%d-%b-%y")
+covid$hosp_visit_date<- as.Date(covid$hosp_visit_date, "%d-%b-%y")
+covid$exposure_end<- as.Date(covid$exposure_end, "%d-%b-%y")
+covid1<- covid
+str(covid)
+
+
+# Date formatting
+a <- as.Date(covid$symptom_onset,format="%m/%d/%Y") # Produces NA when format is not "%m/%d/%Y"
+b <- as.Date(covid$symptom_onset,format="%m-%d-%Y") # Produces NA when format is not "%d-%m-%Y"
+a[is.na(a)] <- b[!is.na(b)] # Combine both while keeping their ranks
+summary(a)
+sum(count(a))
+covid$symptom_onset <- a # Put it back in your dataframe
+colnames(covid)
+str(covid)
+#
+a <- as.Date(covid$hosp_visit_date,format="%m/%d/%Y") # Produces NA when format is not "%m/%d/%Y"
+b <- as.Date(covid$hosp_visit_date,format="%m-%d-%Y") # Produces NA when format is not "%d-%m-%Y"
+
+a[is.na(a)] <- b[!is.na(b)] # Combine both while keeping their ranks
+summary(a)
+str(a)
+covid$hosp_visit_date <- a # Put it back in your dataframe
+
+#
+a <- as.Date(covid$exposure_end,format="%m/%d/%Y") # Produces NA when format is not "%m/%d/%Y"
+b <- as.Date(covid$exposure_end,format="%m-%d-%Y") # Produces NA when format is not "%d-%m-%Y"
+
+a[is.na(a)] <- b[!is.na(b)] # Combine both while keeping their ranks
+summary(a)
+str(a)
+covid$exposure_end <- a 
+
+#
+summary(covid1)
+str(covid)
+summary(covid$hosp_visit_date)
+
+#
+covid$hosp_visit_date = ifelse(covid$hosp_visit_date=="0020-02-22", as.Date("2020-02-22"), covid$hosp_visit_date)
+covid[,covid$hosp_visit_date=="0020-02-22"]= "2020-02-22"
+covid$hosp_visit_date <- covid1$hosp_visit_date
+#
+
+x
